@@ -39,15 +39,17 @@ spec:
               value: "3307"
             - name: MYSQL_DB
               value: jellyfin
+            - name: MYSQL_SSLMODE
+              value: Disabled
             - name: MYSQL_USER
               valueFrom:
                 secretKeyRef:
-                  name: jellyfin-database-credentials
+                  name: database-credentials
                   key: user
             - name: MYSQL_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: jellyfin-database-credentials
+                  name: database-credentials
                   key: password
           volumeMounts:
             - name: config

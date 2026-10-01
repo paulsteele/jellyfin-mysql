@@ -24,17 +24,20 @@ The existing home-lab Argo `ci-build` workflow performs clone, Kaniko build/push
 `localhost:31234/jellyfin-mysql:$BUILD_TAG` from `k8s.template.yaml`.
 No workflow changes or Helmfile image-promotion step are needed.
 
-Home-lab manages the repository registration, the SOPS-encrypted
-`deployments/jellyfin-database-credentials` Secret and the namespace-local
-`paul-steele.com` TLS certificate. Database credentials must never be added to
+Home-lab manages the repository registration, the existing SOPS-encrypted
+`deployments/database-credentials` Secret for the shared `cluster` DB account,
+and the namespace-local `paul-steele.com` TLS certificate. Database credentials must never be added to
 this repository, connection XML or image layers.
 
 Before enabling the signed GitHub push webhook:
 
 1. Create the empty `jellyfin` database on `192.168.0.101:3307` using
-   `utf8mb4`/`utf8mb4_nopad_bin`, with a dedicated account granted privileges
-   only on `jellyfin.*`. Confirm network access and TLS settings.
-2. Apply the credential Secret and wildcard certificate through home-lab.
+   `utf8mb4`/`utf8mb4_nopad_bin`. Reuse the existing shared `cluster` account;
+   do not create another DB user or change its credentials/grants. The server
+   has TLS disabled, so `MYSQL_SSLMODE=Disabled` explicitly matches this LAN
+   endpoint. Confirm network access and schema permissions.
+2. Verify the existing credential Secret and apply the wildcard certificate
+   through home-lab.
 3. Create empty NFS directories `/volume1/files/jellyfin-mysql/config` and
    `/volume1/files/jellyfin-mysql/cache` with suitable permissions.
 4. Record the old `video` Helm release definition/revision, then uninstall
