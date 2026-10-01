@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jellyfin
+  namespace: deployments
+  labels:
+    app: jellyfin
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: jellyfin
+  template:
+    metadata:
+      labels:
+        app: jellyfin
+    spec:
+      containers:
+        - name: jellyfin
+          image: localhost:31234/jellyfin-mysql:$BUILD_TAG
+          imagePullPolicy: Always
+          ports:
+            - name: http
+              containerPort: 8096
+          resources:
+            requests:
+              cpu: 500m
+              memory: 2Gi
+          env:
+            - name: TZ
+              value: America/Indiana/Indianapolis
+            - name: JELLYFIN_PublishedServerUrl
+              value: https://video.paul-steele.com
+            - name: MYSQL_HOST
+              value: 192.168.0.101
+            - name: MYSQL_PORT
+              value: "3307"
+            - name: MYSQL_DB
+              value: jellyfin
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: jellyfin-database-credentials
+                  key: user
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: jellyfin-database-credentials
+                  key: password
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: cache
+              mountPath: /cache
+            - name: media
+              mountPath: /media
+      volumes:
+        - name: config
+          nfs:
+            server: 192.168.0.101
+            path: /volume1/files/jellyfin-mysql/config
+        - name: cache
+          nfs:
+            server: 192.168.0.101
+            path: /volume1/files/jellyfin-mysql/cache
+        - name: media
+          nfs:
+            server: 192.168.0.101
+            path: /volume1/files/media/video
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: jellyfin
+  namespace: deployments
+spec:
+  selector:
+    app: jellyfin
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jellyfin
+  namespace: deployments
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: video.paul-steele.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jellyfin
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - video.paul-steele.com
+      secretName: paul-steele.com

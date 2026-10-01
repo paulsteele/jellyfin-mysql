@@ -1,0 +1,16 @@
+{
+  "guid": "b6b12b0e-1e6b-4a0a-9d4f-2f7f4cb1a6d3",
+  "name": "MySQL Database",
+  "description": "MySQL/MariaDB database provider",
+  "overview": "MySQL/MariaDB database provider",
+  "owner": "canepan",
+  "category": "General",
+  "version": "1.0.1.0",
+  "targetAbi": "10.11.11.0",
+  "changelog": "Pinned MySQL provider for Jellyfin 10.11.11",
+  "timestamp": "2026-08-07T00:00:00Z",
+  "status": "Active",
+  "autoUpdate": false,
+  "imagePath": "",
+  "assemblies": ["Jellyfin.Plugin.MySql.dll"]
+}
